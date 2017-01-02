@@ -1,11 +1,15 @@
-
+# -*- coding: utf-8 -*-
+import sys
+reload(sys)
 import requests as rq
 
+import PIL
 from PIL import Image
 from StringIO import StringIO
 import bs4
 from bs4 import BeautifulSoup as bs
 import re
+
 
 hostUrl = "http://202.121.199.212/JudgeOnline"
 loginUrl = hostUrl+"/login.php"
@@ -41,13 +45,41 @@ session.post(loginUrl,data=formData,headers=header)
 Req =  session.get("http://202.121.199.212/JudgeOnline/status.php?problem_id=&user_id="+Username+"&language=1&jresult=4")
 Soup = bs(Req.text,"html.parser")
 tagArr = Soup.find_all('a',href=re.compile("showsource\.php\?id=*"))
+List = []
 for tag in tagArr:
-    print tag['href']
+    List.append(tag['href'])
 
 NextPage = Soup.find('a',text="Next Page")
-print NextPage['href']
+NextUrl = NextPage['href']
+prePageUrl = ""
+
+Count = 0
+while(cmp(NextUrl,prePageUrl) != 0):
+    Count = Count+1
+    Req = session.get("http://202.121.199.212/JudgeOnline/"+NextUrl)
+    prePageUrl = NextUrl
+    Soup = bs(Req.text,"html.parser")
+    tagArr = Soup.find_all('a',href=re.compile("showsource\.php\?id=*"))
+    for tag in tagArr:
+        List.append(tag['href'])
+    NextPage = Soup.find('a',text="Next Page")
+    NextUrl = NextPage['href']
+List2 = []
+Req = session.get("http://202.121.199.212/JudgeOnline/userinfo.php?user="+Username)
+Req.encoding = "utf-8"
+Soup = bs(Req.text,"html.parser")
+Text = " "
+tagArr = Soup.find_all('script',text=re.compile(".*problem\.php\?id=.*"))
+for tag in tagArr:
+    Text = tag.text
+TextArr = Text.split('\n')
+for text in TextArr[2].split(';'):
+    List2.append(text)
 
 
+
+
+#http://202.121.199.212/JudgeOnline/status.php?&top=386112&prevtop=386137
 
 
 
