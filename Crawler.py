@@ -42,28 +42,28 @@ formData = {
 "vcode":VerifyCode,
 "submit":"Submit"}
 session.post(loginUrl,data=formData,headers=header)
-Req =  session.get("http://202.121.199.212/JudgeOnline/status.php?problem_id=&user_id="+Username+"&language=1&jresult=4")
-Soup = bs(Req.text,"html.parser")
-tagArr = Soup.find_all('a',href=re.compile("showsource\.php\?id=*"))
-List = []
-for tag in tagArr:
-    List.append(tag['href'])
+# Req =  session.get("http://202.121.199.212/JudgeOnline/status.php?problem_id=&user_id="+Username+"&language=1&jresult=4")
+# Soup = bs(Req.text,"html.parser")
+# tagArr = Soup.find_all('a',href=re.compile("showsource\.php\?id=*"))
+# List = []
+# for tag in tagArr:
+#     List.append(tag['href'])
 
-NextPage = Soup.find('a',text="Next Page")
-NextUrl = NextPage['href']
-prePageUrl = ""
+# NextPage = Soup.find('a',text="Next Page")
+# NextUrl = NextPage['href']
+# prePageUrl = ""
 
-Count = 0
-while(cmp(NextUrl,prePageUrl) != 0):
-    Count = Count+1
-    Req = session.get("http://202.121.199.212/JudgeOnline/"+NextUrl)
-    prePageUrl = NextUrl
-    Soup = bs(Req.text,"html.parser")
-    tagArr = Soup.find_all('a',href=re.compile("showsource\.php\?id=*"))
-    for tag in tagArr:
-        List.append(tag['href'])
-    NextPage = Soup.find('a',text="Next Page")
-    NextUrl = NextPage['href']
+# Count = 0
+# while(cmp(NextUrl,prePageUrl) != 0):
+#     Count = Count+1
+#     Req = session.get("http://202.121.199.212/JudgeOnline/"+NextUrl)
+#     prePageUrl = NextUrl
+#     Soup = bs(Req.text,"html.parser")
+#     tagArr = Soup.find_all('a',href=re.compile("showsource\.php\?id=*"))
+#     for tag in tagArr:
+#         List.append(tag['href'])
+#     NextPage = Soup.find('a',text="Next Page")
+#     NextUrl = NextPage['href']
 List2 = []
 Req = session.get("http://202.121.199.212/JudgeOnline/userinfo.php?user="+Username)
 Req.encoding = "utf-8"
@@ -74,12 +74,70 @@ for tag in tagArr:
     Text = tag.text
 TextArr = Text.split('\n')
 for text in TextArr[2].split(';'):
-    List2.append(text)
+    List2.append(text[2:-1])
+CodeUrl = "http://202.121.199.212/JudgeOnline/showsource.php?id="
+ListUrl =[]
+for ID in List2:
+    Req = session.get("http://202.121.199.212/JudgeOnline/status.php?problem_id="+ID+"&user_id="+Username+"&language=-1&jresult=4")
+    Soup = bs(Req.text,"html.parser")
+    tagArr = Soup.find_all('a',href=re.compile(".*showsource\.php\?id=.*"))
+    Tmp = ""
+    for tag in tagArr:
+        Tmp = tag['href']
+    if(cmp(Tmp,"")!=0):
+        ListUrl.append(Tmp)
+
+EndCid = 1176
+StartCid = 1118
+while (StartCid <= EndCid):
+    Cid = str(StartCid)
+    Req = session.get("http://202.121.199.212/JudgeOnline/status.php?problem_id=&user_id="+Username+"&cid="+Cid+"&language=-1&jresult=4")
+    Soup = bs(Req.text, "html.parser")
+    tagArr = Soup.find_all('a', href=re.compile(".*showsource\.php\?id=.*"))
+    Tmp = ""
+    for tag in tagArr:
+        Tmp = tag['href']
+        if (cmp(Tmp, "") != 0):
+            ListUrl.append(Tmp)
+    StartCid = StartCid + 1
+
+ListPid = []
+Count = 0
+ListUrlWeNeed = []
+for Url in ListUrl:
+    IsOk = False
+    Req = session.get(hostUrl+'/'+Url)
+    Soup = bs(Req.text,"html.parser")
+    tagArr = Soup.find_all('pre')
+    Text = " "
+    for tag in tagArr:
+        Text = tag
+    Text = str(Text)
+    if(cmp(Text," ")!=0):
+        textArr = Text.split('\n')
+        Pid = textArr[-9][-4:]
+        if Pid not in ListPid:
+            ListPid.append(textArr[-9][-4:])
+            IsOk = True
+    if IsOk == True:
+        ListUrlWeNeed.append(Url)
 
 
 
+        # pattern = re.compile(r".*pre class=.*")
+        # match = pattern.match(Text)
+        # if match:
+        #     print match.group()
+        # else:
+        #     print "No"
+# print session.get(hostUrl+'/'+ListUrl[0]).text
 
+
+
+#http://202.121.199.212/JudgeOnline/status.php?problem_id=1615&user_id=14122245&language=1&jresult=4
+#http://202.121.199.212/JudgeOnline/showsource.php?id=384492
 #http://202.121.199.212/JudgeOnline/status.php?&top=386112&prevtop=386137
+#http://202.121.199.212/JudgeOnline/status.php?problem_id=&user_id=14122245&cid=1176&language=-1&jresult=-1
 
 
-
+#
